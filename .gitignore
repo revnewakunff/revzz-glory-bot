@@ -1,0 +1,12 @@
+accounts.json
+token_cache.json
+devices.json
+banned_accounts.json
+guild_config.json
+guild_exp_cache.json
+accounts_archive.json
+generator.log
+.env
+__pycache__/
+*.pyc
+.DS_Store
