@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#15131c"/>
+<title>AjayXGlory | Guild Glory control room</title>
+<style>
+:root{
+ --pit:#15131c;--panel:#1e1b27;--raised:#282434;--edge:#3b3548;
+ --gold:#ffc21a;--gold-ink:#1d1500;--ember:#ff8a3d;
+ --bone:#f3efe6;--fog:#a59db6;
+ --mint:#58e0a0;--sky:#5cc8ff;--rose:#ff5c74;--violet:#b69cff;
+ --green:var(--mint);--cyan:var(--sky);--red:var(--rose);--muted:var(--fog);--amber:var(--ember);
+ --display:"Bahnschrift","Barlow Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+ --body:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+ --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px;color-scheme:dark}
+body{margin:0;background:radial-gradient(900px 420px at 10% -8%,rgba(255,194,26,.11),transparent 62%),var(--pit);color:var(--bone);font:15px/1.5 var(--body);-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ok{color:var(--mint)}.bad{color:var(--rose)}.warn{color:var(--ember)}.muted{color:var(--fog)}
+.num,.score strong,.hd-kpi b,.tile strong,.gl-chip b,.stat strong{font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+.topbar{position:sticky;top:0;z-index:30;background:rgba(21,19,28,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--edge)}
+.topbar-in{max-width:1200px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.brand svg{width:30px;height:34px;flex:none}
+.brand b{display:block;font:800 22px/1 var(--display);font-stretch:75%;letter-spacing:.01em}
+.brand span{display:block;font-size:12px;color:var(--fog);margin-top:2px}
+.nav{display:flex;gap:4px}
+.nav a{color:var(--fog);text-decoration:none;font-weight:600;font-size:14px;padding:7px 14px;border-radius:999px}
+.nav a:hover{color:var(--bone)}
+.nav a.on{background:var(--gold);color:var(--gold-ink)}
+.hd-kpis{display:flex;gap:20px}
+.hd-kpi{line-height:1.1}.hd-kpi b{display:block;font:800 20px/1.1 var(--display);font-stretch:75%}.hd-kpi span{font-size:11px;color:var(--fog)}
+.pill{border:1px solid var(--edge);background:var(--panel);padding:7px 14px;border-radius:999px;color:var(--fog);font-size:13px;font-weight:700;white-space:nowrap}
+
+/* ---------- page + panels ---------- */
+.main{max-width:1200px;margin:0 auto;padding:18px 16px 60px;display:grid;gap:18px}
+.two{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:18px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--edge);border-left:4px solid var(--c,var(--edge));border-radius:4px 16px 16px 4px;padding:20px;min-width:0}
+.panel.gold{--c:var(--gold)}.panel.sky{--c:var(--sky)}.panel.violet{--c:var(--violet)}.panel.fog{--c:var(--fog)}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.ph h2{margin:0;font:800 24px/1.1 var(--display);font-stretch:75%;letter-spacing:.01em}
+.ph p,.hint{margin:4px 0 0;color:var(--fog);font-size:13px;line-height:1.5;max-width:64ch}
+.hint:empty{display:none}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--mint);white-space:nowrap}
+.live:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mint);animation:beat 1.6s infinite}
+@keyframes beat{50%{opacity:.35}}
+.empty{color:var(--fog);font-size:13px;padding:14px;text-align:center;border:1px dashed var(--edge);border-radius:10px}
+.more{color:var(--fog);font-size:12px;text-align:center;padding:6px}
+
+/* ---------- hero: Glory scoreboard ---------- */
+.hero{background:linear-gradient(135deg,#2a2233 0%,#1e1b27 55%),var(--panel);border:1px solid #4a3f2c;border-radius:30px 6px 30px 6px;padding:24px 26px 22px;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:linear-gradient(var(--gold),var(--ember))}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hero-guild{display:flex;align-items:center;gap:12px;min-width:0}
+.crest{width:44px;height:50px;flex:none}
+.hg-name{font:800 26px/1.05 var(--display);font-stretch:75%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw}
+.hg-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px}
+.badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;border:1px solid var(--edge);background:var(--pit);color:var(--bone)}
+.badge.lv{color:var(--gold);border-color:rgba(255,194,26,.45)}.badge.rg{color:var(--sky);border-color:rgba(92,200,255,.45)}
+.hero-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:end;margin-top:18px}
+.score small{display:block;color:var(--fog);font-size:13px;font-weight:600}
+.score strong{display:block;font:800 clamp(52px,10vw,104px)/.95 var(--display);font-stretch:70%;color:var(--gold);letter-spacing:-.005em;margin-top:2px;text-shadow:0 0 38px rgba(255,194,26,.28)}
+.score-sub{margin-top:8px;font-size:12px;color:var(--fog)}
+.gl-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gl-chip{background:rgba(21,19,28,.7);border:1px solid var(--edge);border-radius:6px 12px 6px 12px;padding:10px 14px}
+.gl-chip small{display:block;color:var(--fog);font-size:12px}
+.gl-chip b{display:block;font:800 24px/1.15 var(--display);font-stretch:75%;margin-top:2px}
+.gl-chart{margin-top:18px;background:rgba(15,13,20,.75);border:1px solid var(--edge);border-radius:10px;padding:12px 14px 8px}
+#lgSpark{width:100%;height:140px;display:block}
+.gl-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--fog);margin-top:4px}
+.gl-top{margin-top:18px}
+.mlist-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:2px}
+.mlist-head b{font:800 17px/1.2 var(--display);font-stretch:75%}.mlist-head small{color:var(--fog);font-size:12px}
+.gt-row{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;margin-top:10px}
+.gt-rank{font-size:17px;text-align:center}
+.gt-name{font-size:13px;font-weight:700;display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
+.gt-bar{height:6px;border-radius:99px;background:var(--pit);border:1px solid var(--edge);margin-top:5px;overflow:hidden}
+.gt-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--ember));border-radius:99px}
+.gt-val{font:800 18px/1 var(--display);font-stretch:75%;color:var(--gold);font-variant-numeric:tabular-nums}
+
+/* ---------- control (account add) ---------- */
+.steps{list-style:none;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.steps li{position:relative;font-size:12px;color:var(--fog);text-align:center;padding-top:34px;line-height:1.25}
+.steps li:before{content:attr(data-n);position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--pit);border:2px solid var(--edge);font:800 13px var(--display);color:var(--fog);z-index:1}
+.steps li:after{content:"";position:absolute;top:12px;left:calc(50% + 17px);right:calc(-50% + 17px);height:2px;background:var(--edge)}
+.steps li:last-child:after{display:none}
+.steps li.done{color:var(--bone)}.steps li.done:before{content:"✓";background:var(--mint);border-color:var(--mint);color:#06281a}.steps li.done:after{background:var(--mint)}
+.steps li.now{color:var(--gold);font-weight:700}.steps li.now:before{border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 4px rgba(255,194,26,.18)}
+.steps li.err{color:var(--rose)}.steps li.err:before{border-color:var(--rose);color:var(--rose)}
+.fields{display:grid;grid-template-columns:1fr 150px;gap:12px;margin-top:12px}
+.field label{display:block;color:var(--fog);font-size:12px;font-weight:600;margin:0 0 6px}
+.field input,.field select{width:100%;background:var(--pit);border:1px solid var(--edge);border-radius:6px;padding:12px 13px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,194,26,.16)}
+.controls{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.check{display:flex;gap:10px;align-items:flex-start;background:var(--pit);border:1px solid var(--edge);border-radius:8px;padding:11px 13px;font-size:13px;color:var(--bone);line-height:1.4}
+.check input{accent-color:var(--gold);margin-top:3px;width:16px;height:16px;flex:none}
+.check small{display:block;color:var(--fog);font-size:12px;margin-top:2px}
+button{border:0;cursor:pointer}
+#start{width:100%;margin-top:14px;padding:15px 18px;border-radius:6px 14px 6px 14px;background:linear-gradient(135deg,var(--gold),var(--ember));color:var(--gold-ink);font:800 19px/1.1 var(--display);font-stretch:75%;letter-spacing:.01em}
+#start:hover:not(:disabled){filter:brightness(1.08)}
+#start:disabled{opacity:.5;cursor:not-allowed}
+.progress{margin-top:16px}
+.bar2,.bar{height:9px;background:var(--pit);border:1px solid var(--edge);border-radius:99px;overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--ember));transition:width .35s}
+.stage{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:13px}.stage b{color:var(--gold)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.stat{background:var(--pit);border:1px solid var(--edge);border-radius:6px 12px 6px 12px;padding:10px 12px}
+.stat span{display:block;color:var(--fog);font-size:12px}
+.stat strong{display:block;font:800 22px/1.15 var(--display);font-stretch:75%;margin-top:2px}
+
+/* ---------- guild ---------- */
+.ghead{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--edge);border-radius:6px 14px 6px 14px;background:var(--raised)}
+.gicon{width:48px;height:48px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:24px;background:var(--pit);border:1px solid var(--edge)}
+.gtitle{min-width:0;flex:1}.gtitle small{color:var(--fog);font-size:12px}
+.gtitle b{display:block;font:800 22px/1.1 var(--display);font-stretch:75%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.guild{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.gbox{background:var(--pit);border:1px solid var(--edge);border-radius:6px 12px 6px 12px;padding:10px 12px;min-width:0}
+.gbox small{color:var(--fog);display:block;font-size:12px}
+.gbox b{display:block;margin-top:3px;font-size:15px;overflow:hidden;text-overflow:ellipsis}
+.gid{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.copy{width:auto;margin:0;padding:4px 10px;font-size:12px;font-weight:700;border-radius:99px;background:var(--raised);color:var(--gold);border:1px solid var(--edge)}
+.mem{margin-top:10px;background:var(--pit);border:1px solid var(--edge);border-radius:10px;padding:12px 14px}
+.mem .row{display:flex;justify-content:space-between;font-size:13px;color:var(--fog)}.mem .row b{color:var(--bone)}
+.mem .bar{margin-top:8px}
+.mem .fill{background:linear-gradient(90deg,var(--mint),var(--sky))}
+.extra{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.extra:empty{display:none}
+.extra .gbox b{font-size:13px}
+.gupd{margin-top:8px;font-size:12px;color:var(--fog);text-align:right}
+.notice{display:none;margin-top:10px;font-size:13px;color:var(--bone);background:var(--pit);border:1px dashed var(--edge);border-radius:10px;padding:10px 12px}
+.mlist{margin-top:10px;max-height:300px;overflow:auto;display:grid;gap:8px;padding-right:2px}
+.mrow{display:flex;gap:12px;align-items:flex-start;background:var(--pit);border:1px solid var(--edge);border-radius:6px 12px 6px 12px;padding:10px 12px}
+.mrow.ours{border-color:rgba(92,200,255,.55);background:rgba(92,200,255,.06)}.mrow.lead{border-color:rgba(255,194,26,.6)}
+.mav{width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;background:var(--raised);border:1px solid var(--edge);font-size:17px}
+.mi{min-width:0;flex:1}
+.mi b{font-size:14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.mi small{display:block;color:var(--fog);font-size:12px;margin-top:2px}
+.mtag{font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px}
+.mtag.l{background:rgba(255,194,26,.16);color:var(--gold)}.mtag.o{background:rgba(92,200,255,.16);color:var(--sky)}
+.mchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mchips span{font-size:11px;padding:3px 9px;border-radius:8px;border:1px solid var(--edge);background:var(--panel);color:var(--bone)}
+
+/* ---------- overview tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.tile{background:var(--panel);border:1px solid var(--edge);border-top:3px solid var(--edge);border-radius:4px 12px 4px 12px;padding:11px 12px;min-width:0}
+.tile span{display:block;color:var(--fog);font-size:12px}
+.tile strong{display:block;font:800 24px/1.15 var(--display);font-stretch:75%;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile strong span{display:inline;color:inherit;font-size:inherit}
+.tile .ok{color:var(--mint)}.tile .bad{color:var(--rose)}
+.tile small{display:block;color:var(--fog);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- squads / accounts ---------- */
+.accs{display:grid;gap:12px}
+.sqsec{border:1px solid var(--edge);border-left:4px solid var(--edge);border-radius:4px 14px 14px 4px;padding:12px;background:var(--raised);display:grid;gap:8px}
+.sqsec.playing{border-left-color:var(--sky)}.sqsec.waiting{border-left-color:var(--ember)}
+.sqhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sqhead b{font:800 19px/1 var(--display);font-stretch:75%}
+.sqbar{height:6px;border-radius:99px;background:var(--pit);border:1px solid var(--edge);overflow:hidden;flex:1;min-width:70px;max-width:160px}
+.sqbar i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--sky))}
+.acc{display:grid;grid-template-columns:minmax(140px,1.2fr) 190px minmax(0,2fr) minmax(0,1.5fr);gap:12px;align-items:center;background:var(--pit);border:1px solid var(--edge);border-radius:6px 12px 6px 12px;padding:10px 14px}
+.acc .nm{min-width:0}.acc .nm b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.acc .nm small{color:var(--fog);font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;border:1px solid var(--edge);color:var(--fog);text-align:center;white-space:nowrap}
+.st-ONLINE,.sq-ready{color:var(--mint);border-color:rgba(88,224,160,.5);background:rgba(88,224,160,.09)}
+.st-IN_MATCH{color:var(--sky);border-color:rgba(92,200,255,.5);background:rgba(92,200,255,.09)}
+.st-RE_LOGIN,.st-CONNECTING{color:var(--ember);border-color:rgba(255,138,61,.55);background:rgba(255,138,61,.09);animation:beat 1.4s infinite}
+.sq-wait{color:var(--ember);border-color:rgba(255,138,61,.55);background:rgba(255,138,61,.09)}
+.st-ERROR,.st-BANNED{color:var(--rose);border-color:rgba(255,92,116,.55);background:rgba(255,92,116,.09)}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--bone)}.meta i{font-style:normal;color:var(--fog)}
+.rl{font-size:12px;color:var(--fog)}.rl b{font-weight:700;color:var(--bone)}
+.bn-head{margin-top:16px;font:800 17px/1.2 var(--display);font-stretch:75%;color:var(--rose)}
+.bn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;background:var(--pit);border:1px solid rgba(255,92,116,.4);border-left:4px solid var(--rose);border-radius:4px 10px 10px 4px;padding:9px 12px;font-size:13px}
+.old-box{margin-top:16px;border:1px dashed rgba(182,156,255,.55);border-radius:12px;padding:14px;background:rgba(182,156,255,.05)}
+.old-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.old-head b{font:800 17px/1.2 var(--display);font-stretch:75%}
+.old-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.f{padding:7px 13px;font-size:12px;font-weight:700;border-radius:99px;background:var(--pit);color:var(--bone);border:1px solid var(--edge)}
+.f:hover{border-color:var(--gold)}
+.f.on{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.old-all{margin-top:12px;padding:12px 16px;border-radius:6px 12px 6px 12px;font-weight:800;background:linear-gradient(135deg,var(--violet),var(--sky));color:#10101c}
+
+/* ---------- log ---------- */
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.dbg{margin-left:auto;font-size:12px;color:var(--fog);display:flex;gap:6px;align-items:center}.dbg input{accent-color:var(--gold)}
+.logs{margin-top:12px;max-height:400px;overflow:auto;background:#100e16;border:1px solid var(--edge);border-radius:10px;padding:6px 12px;font:12px/1.6 var(--mono)}
+.log{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);align-items:flex-start}
+.log .t{color:#6d6580;flex:none}
+.log .tag{flex:none;font-size:10px;font-weight:800;padding:1px 7px;border-radius:6px;margin-top:2px}
+.log .m{word-break:break-word;min-width:0}
+.lv-success .m{color:var(--mint)}.lv-error .m{color:var(--rose)}.lv-warning .m{color:var(--ember)}.lv-info .m{color:#b9b0cc}
+.tg-success{background:rgba(88,224,160,.15);color:var(--mint)}.tg-error{background:rgba(255,92,116,.15);color:var(--rose)}.tg-warning{background:rgba(255,138,61,.15);color:var(--ember)}.tg-info{background:rgba(185,176,204,.14);color:#b9b0cc}.tg-relogin{background:rgba(182,156,255,.2);color:var(--violet)}
+.foot{color:#6d6580;text-align:center;font-size:12px;margin-top:6px}
+
+/* ---------- responsive ---------- */
+@media(max-width:1080px){.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:900px){
+ .two{grid-template-columns:1fr}
+ .hero-body{grid-template-columns:1fr;gap:16px}
+ .hd-kpis{display:none}
+ .nav{order:3;width:100%;overflow-x:auto;padding-bottom:2px}.nav a{white-space:nowrap}
+ .acc{grid-template-columns:1fr auto}.acc .meta,.acc .rl{grid-column:1/-1}
+}
+@media(max-width:560px){
+ .brand span{display:none}.brand b{font-size:20px}.pill{padding:6px 11px;font-size:12px}.topbar-in{gap:10px}
+ .main{padding:14px 12px 48px;gap:14px}.panel{padding:16px}.hero{padding:18px 16px;border-radius:22px 6px 22px 6px}
+ .fields{grid-template-columns:1fr 112px}.extra{grid-template-columns:1fr}
+ .stats{grid-template-columns:1fr 1fr}.tiles{grid-template-columns:1fr 1fr}
+ .steps li{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-in">
+ <div class="brand"><svg class="" viewBox="0 0 44 50" aria-hidden="true"><path d="M22 2 40 9v14c0 12-8 21-18 25C12 44 4 35 4 23V9z" fill="#2a2233" stroke="#ffc21a" stroke-width="2.5"/><path d="M12 22l4-8 6 5 6-5 4 8z" fill="#ffc21a"/><rect x="12" y="24" width="20" height="4" rx="1" fill="#ff8a3d"/><path d="M22 30l3 5h-6z" fill="#ffc21a"/></svg><div><b>AjayXGlory</b><span>Guild Glory control room</span></div></div>
+ <nav class="nav" aria-label="Sections"><a href="#glorySec" class="on">Glory</a><a href="#control">Accounts add</a><a href="#squads">Squads</a><a href="#log">Log</a></nav>
+ <div class="hd-kpis"><div class="hd-kpi"><b id="hdGlory">N/H</b><span>Guild Glory</span></div><div class="hd-kpi"><b id="hdOnline">0/0</b><span>Accounts online</span></div><div class="hd-kpi"><b id="hdUptime">0s</b><span>Uptime</span></div></div>
+ <div class="pill" id="statusPill" role="status" aria-live="polite">● READY</div>
+</div></header>
+
+<main class="main">
+
+<section class="hero" id="glorySec" aria-label="Guild Glory">
+ <div class="hero-top">
+  <div class="hero-guild"><svg class="crest" viewBox="0 0 44 50" aria-hidden="true"><path d="M22 2 40 9v14c0 12-8 21-18 25C12 44 4 35 4 23V9z" fill="#2a2233" stroke="#ffc21a" stroke-width="2.5"/><path d="M12 22l4-8 6 5 6-5 4 8z" fill="#ffc21a"/><rect x="12" y="24" width="20" height="4" rx="1" fill="#ff8a3d"/><path d="M22 30l3 5h-6z" fill="#ffc21a"/></svg><div><div class="hg-name" id="hGuild">N/H</div><div class="hg-meta"><span class="badge lv" id="hLevel">Level N/H</span><span class="badge rg" id="hRegion">N/H</span></div></div></div>
+  <span class="live">Live, game server se</span>
+ </div>
+ <div class="hero-body">
+  <div class="score"><small>Guild Glory abhi</small><strong id="lgGlory">N/H</strong><div class="score-sub" id="lgUpd">game se data ka intezaar…</div></div>
+  <div class="gl-chips">
+   <div class="gl-chip"><small>Gain is run mein</small><b id="lgSess" class="ok">+0</b></div>
+   <div class="gl-chip"><small>Gain total tracked</small><b id="lgTotal" class="ok">+0</b></div>
+   <div class="gl-chip"><small>Speed per ghanta</small><b id="lgHour">0</b></div>
+   <div class="gl-chip"><small>Members online</small><b id="lgOnline">N/H</b></div>
+  </div>
+ </div>
+ <div class="gl-chart"><svg id="lgSpark" viewBox="0 0 600 150" preserveAspectRatio="none" role="img" aria-label="Glory graph"></svg><div class="gl-axis"><span id="lgMin">—</span><span id="lgSpan">graph: data aane par</span><span id="lgMax">—</span></div></div>
+ <div class="hint" id="lgNote"></div>
+ <div class="gl-top"><div class="mlist-head"><b>🏆 Top Glory members</b><small id="lgTopNote"></small></div><div id="lgTop"><div class="empty">Member data ka intezaar…</div></div></div>
+</section>
+
+<section class="tiles" aria-label="Bot ka haal">
+ <div class="tile"><span>Uptime</span><strong id="tUptime">0s</strong><small>bot start se</small></div>
+ <div class="tile"><span>Accounts</span><strong id="tAccs">0</strong><small id="tAccsSub">online 0</small></div>
+ <div class="tile"><span>In match abhi</span><strong id="tActive">0</strong><small>chalte hue matches</small></div>
+ <div class="tile"><span>Matches done</span><strong id="tMatches">0</strong><small id="tStarted">started 0</small></div>
+ <div class="tile"><span>EXP gained</span><strong id="tExp">0</strong><small>total</small></div>
+ <div class="tile"><span>EXP per ghanta</span><strong id="tExpH">0</strong><small>average speed</small></div>
+ <div class="tile"><span>Re-login</span><strong id="tRl"><span class="ok">0</span> / <span class="bad">0</span></strong><small id="tRlSub">success / fail</small></div>
+ <div class="tile"><span>Last re-login</span><strong id="tRlLast">—</strong><small id="tRlWho">abhi tak koi nahi</small></div>
+</section>
+
+<div class="two">
+<section class="panel gold" id="control">
+ <div class="ph"><div><h2>Accounts add karo</h2><p>Ek button: naye accounts banao, guild mein join karwao aur Glory shuru karo. Purane accounts bhi sath mein chalte rehte hain.</p></div></div>
+ <ol class="steps" id="steps"><li data-n="1">Accounts banao</li><li data-n="2">Guild dhundo</li><li data-n="3">Join request</li><li data-n="4">Glory shuru</li></ol>
+ <div class="fields"><div class="field"><label for="guildId">Guild ID</label><input id="guildId" placeholder="Guild ID likho" inputmode="numeric" autocomplete="off"/></div><div class="field"><label for="region">Region</label><select id="region"><option>IND</option><option>BD</option><option>SG</option><option>ID</option><option>ME</option><option>VN</option><option>BR</option><option>NA</option><option>PK</option><option>TH</option></select></div></div>
+ <div class="fields"><div class="field"><label for="total">Kitne naye accounts banane hain</label><input id="total" type="number" min="1" max="500" value="5"/></div><div class="field"><label for="threads">Generator threads</label><input id="threads" type="number" min="1" max="30" value="5"/></div></div>
+ <div class="controls"><label class="check"><input id="fresh" type="checkbox" checked/><span>Naya accounts.json pool<small>Purane accounts hat-te nahi, wo archive mein save rehte hain. Neeche "Purane accounts" se wapas activate kar sakte ho.</small></span></label></div>
+ <button id="start" type="button">Accounts banao, guild mein jodo, Glory shuru karo</button>
+ <div class="progress"><div class="bar"><div class="fill" id="fill"></div></div><div class="stage"><span id="stage">Ready</span><b id="percent">0%</b></div></div>
+ <div class="stats"><div class="stat"><span>Generated</span><strong id="created">0</strong></div><div class="stat"><span>Join success</span><strong id="joined">0</strong></div><div class="stat"><span>Join failed</span><strong id="failed">0</strong></div><div class="stat"><span>Glory</span><strong id="glory">OFF</strong></div></div>
+</section>
+
+<section class="panel violet" id="guild">
+ <div class="ph"><div><h2>Guild ki jaankari</h2><p>Guild ka data aur members yahan apne aap aate hain.</p></div></div>
+ <div class="ghead"><div class="gicon">🛡️</div><div class="gtitle"><small>Guild name</small><b id="gName">N/H</b><div class="badges"><span class="badge lv" id="gLevelBadge">Level N/H</span><span class="badge rg" id="gRegionBadge">N/H</span></div></div></div>
+ <div class="guild">
+  <div class="gbox"><small>Guild ID</small><div class="gid"><b id="gId">N/H</b><button class="copy" id="copyId" type="button">Copy</button></div></div>
+  <div class="gbox"><small>Region</small><b id="gRegion">N/H</b></div>
+  <div class="gbox"><small>Guild level</small><b id="gLevel">N/H</b></div>
+  <div class="gbox"><small>Members</small><b id="gMembers">N/H</b></div>
+  <div class="gbox"><small>Max members</small><b id="gMax">N/H</b></div>
+  <div class="gbox"><small>Jagah khali</small><b id="gFree">N/H</b></div>
+ </div>
+ <div class="mem"><div class="row"><span>Guild capacity</span><b id="gMemText">N/H</b></div><div class="bar"><div class="fill" id="gMemFill"></div></div></div>
+ <div class="extra" id="gExtra"></div>
+ <div class="gupd" id="gUpd"></div>
+ <div class="notice" id="gNotice"></div>
+ <div class="mlist-head" style="margin-top:14px"><b>Guild members</b><small id="mCount"></small></div>
+ <div class="mlist" id="mList"><div class="empty">Live member list ka intezaar…</div></div>
+</section>
+</div>
+
+<section class="panel sky" id="squads">
+ <div class="ph"><div><h2>Squads aur accounts</h2><p>Har 4 accounts ki apni squad. Token expire hone par account apne aap dobara login hokar wapas khelta hai. Yahan har squad ka stage aur re-login history dikhti hai.</p></div></div>
+ <div class="accs" id="accs"><div class="empty">Accounts abhi load nahi hue…</div></div>
+ <div id="banned"></div>
+ <div id="oldAcc"></div>
+</section>
+
+<section class="panel fog" id="log">
+ <div class="ph"><div><h2>Live activity log</h2><p>Naya event sabse upar. Hara success, peela warning, laal error, baingani re-login.</p></div><span class="live">Live</span></div>
+ <div class="filters">
+  <button class="f on" data-f="all" type="button">Sab</button><button class="f" data-f="success" type="button">✅ Success</button><button class="f" data-f="warning" type="button">⚠ Warning</button><button class="f" data-f="error" type="button">❌ Error</button><button class="f" data-f="relogin" type="button">🔄 Re-login</button>
+  <label class="dbg"><input id="hideDbg" type="checkbox" checked/> Debug lines chhupao</label>
+ </div>
+ <div class="logs" id="logs"><div class="muted">Waiting for automation logs…</div></div>
+</section>
+
+<div class="foot">AjayXGlory, guild Glory control room</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null};
+const fmtN=v=>{const n=num(v);return n===null?String(v??'0'):n.toLocaleString()};
+function fmtDur(sec){sec=Math.max(0,Math.floor(sec||0));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?`${h}h ${m}m`:(m?`${m}m ${s}s`:`${s}s`)}
+const SKIP=new Set(['guildname','guildregion','maxmembers','guildlevel','guildid','guild_id','region','guild_name','guild_region','max_members','guild_level','current_members','updated_at','details','status','raw']);
+const pretty=k=>String(k).replace(/_/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/\b\w/g,c=>c.toUpperCase());
+
+function renderGuild(g){if(!g)return;
+ const name=g.guild_name||'N/H',lvl=g.guild_level??'N/H',reg=g.guild_region||g.region||'N/H';
+ $('gName').textContent=name;$('hGuild').textContent=name;$('hLevel').textContent='Level '+lvl;$('hRegion').textContent=reg;$('gId').textContent=g.guild_id||'N/H';$('gRegion').textContent=reg;$('gLevel').textContent=lvl;
+ $('gLevelBadge').textContent='Level '+lvl;$('gRegionBadge').textContent=reg;
+ const curRaw=g.current_members??g.members,maxRaw=g.max_members,cur=num(curRaw),max=num(maxRaw);
+ $('gMembers').textContent=curRaw??'N/H';$('gMax').textContent=maxRaw??'N/H';
+ if(cur!==null&&max!==null&&max>0){const p=Math.min(100,Math.round(cur/max*100));$('gFree').textContent=Math.max(0,max-cur);$('gMemText').textContent=`${cur} / ${max} (${p}%)`;$('gMemFill').style.width=p+'%'}
+ else{$('gFree').textContent='N/H';$('gMemText').textContent=max!==null?`? / ${max}`:'N/H';$('gMemFill').style.width='0%'}
+ const det=g.details||{};const items=Object.entries(det).filter(([k,v])=>!SKIP.has(String(k).toLowerCase())&&v!==''&&v!==null&&String(v).length<80).slice(0,12);
+ $('gExtra').innerHTML=items.map(([k,v])=>`<div class="gbox"><small>${esc(pretty(k))}</small><b>${esc(typeof v==='number'?v.toLocaleString():v)}</b></div>`).join('');
+ $('gUpd').textContent=g.updated_at?('Last updated: '+new Date(g.updated_at*1000).toLocaleTimeString()):''}
+$('copyId').onclick=()=>{const v=$('gId').textContent;if(v&&v!=='N/H'&&navigator.clipboard){navigator.clipboard.writeText(v);$('copyId').textContent='Copied ✓';setTimeout(()=>$('copyId').textContent='Copy',1200)}};
+
+function relAge(ts){if(!ts)return '—';const d=Math.max(0,Math.floor(Date.now()/1000-ts));return d<5?'abhi abhi':(d<60?d+'s pehle':Math.floor(d/60)+'m pehle')}
+const sgn=n=>{n=Number(n)||0;return (n>=0?'+':'')+n.toLocaleString()};
+function animNum(el,to){const from=el._v==null?to:el._v;el._v=to;if(typeof requestAnimationFrame!=='function'||from===to){el.textContent=fmtN(to);return}
+ const t0=Date.now(),dur=700;(function step(){const k=Math.min(1,(Date.now()-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=fmtN(Math.round(from+(to-from)*e));if(k<1&&el._v===to)requestAnimationFrame(step)})()}
+function spark(h){const el=$('lgSpark');
+ if(!h||h.length<2){el.innerHTML='';$('lgMin').textContent='—';$('lgMax').textContent='—';$('lgSpan').textContent='graph: data aane par';return}
+ const ys=h.map(x=>x[1]),mn=Math.min(...ys),mx=Math.max(...ys),rg=Math.max(1,mx-mn),n=h.length,up=ys[n-1]>=ys[0],col=up?'#36e58b':'#ff5c7a';
+ const X=i=>(i/(n-1)*590+5),Y=v=>(138-((v-mn)/rg)*118);
+ const line=h.map((x,i)=>`${X(i).toFixed(1)},${Y(x[1]).toFixed(1)}`).join(' ');
+ const area=`M${X(0).toFixed(1)},148 L${line.split(' ').join(' L')} L${X(n-1).toFixed(1)},148 Z`;
+ el.innerHTML=`<defs><linearGradient id="lgGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".38"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>`
+  +[30,80,130].map(y=>`<line x1="0" x2="600" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.06)" vector-effect="non-scaling-stroke"/>`).join('')
+  +`<path d="${area}" fill="url(#lgGrad)"/><polyline fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" points="${line}"/>`
+  +`<line x1="${X(n-1).toFixed(1)}" x2="${(X(n-1)+.01).toFixed(1)}" y1="${Y(ys[n-1]).toFixed(1)}" y2="${Y(ys[n-1]).toFixed(1)}" stroke="${col}" stroke-width="10" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+ $('lgMin').textContent='low '+fmtN(mn);$('lgMax').textContent='high '+fmtN(mx);$('lgSpan').textContent='pichhle '+fmtDur(h[n-1][0]-h[0][0])+' ka graph'}
+function renderTop(ms){const top=(ms||[]).slice().sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,5),mx=Math.max(1,...top.map(m=>m.score||0)),medal=['🥇','🥈','🥉','4','5'];
+ $('lgTopNote').textContent=top.length?`${(ms||[]).length} members mein se top ${top.length}`:'';
+ $('lgTop').innerHTML=top.length?top.map((m,i)=>`<div class="gt-row"><div class="gt-rank">${medal[i]}</div><div><div class="gt-name">${esc(m.name)}${m.is_leader?'<span class="mtag l">LEADER</span>':''}${m.is_ours?'<span class="mtag o">HAMARA BOT</span>':''}</div><div class="gt-bar"><i style="width:${Math.round((m.score||0)/mx*100)}%"></i></div></div><div class="gt-val">${fmtN(m.score||0)}</div></div>`).join(''):'<div class="empty">Game ne member glory data nahi bheja.</div>'}
+function renderLive(g){
+ if(!g||!g.glory){$('lgGlory').textContent='N/H';$('hdGlory').textContent='N/H';$('lgGlory')._v=null;$('lgUpd').textContent='game se data ka intezaar…';$('lgNote').textContent=(g&&g.error)?('⚠ '+g.error):'Guild select karke Glory start karo — phir live glory yahan aayegi.';$('mList').innerHTML='<div class="empty">Live member list ka intezaar…</div>';$('mCount').textContent='';spark(null);renderTop([]);return}
+ animNum($('lgGlory'),Number(g.glory));$('hdGlory').textContent=fmtN(g.glory);
+ const se=$('lgSess'),to=$('lgTotal');se.textContent=sgn(g.gained_session);to.textContent=sgn(g.gained_total);
+ se.className=(g.gained_session||0)>=0?'ok':'bad';to.className=(g.gained_total||0)>=0?'ok':'bad';
+ $('lgHour').textContent=fmtN(g.per_hour||0);
+ $('lgOnline').textContent=(g.members_online!=null&&g.total_members!=null)?`${g.members_online} / ${g.total_members}`:'N/H';
+ $('lgUpd').textContent='updated '+relAge(g.updated_at)+' • har '+(g.interval||30)+'s';
+ $('lgNote').textContent=g.ok===false?('⚠ Last update fail: '+g.error+' (purana data dikh raha hai)'):'';
+ spark(g.history);
+ const nt=$('gNotice');if(g.notice){nt.style.display='block';nt.textContent='📢 '+g.notice}else{nt.style.display='none'}
+ const ms=g.members||[];renderTop(ms);
+ $('mCount').textContent=ms.length?`${ms.length} members list mein`:'';
+ $('mList').innerHTML=ms.length?ms.map(m=>{const av=m.avatar_id?('Avatar '+m.avatar_id):'Avatar default',bn=m.banner_id?('Banner '+m.banner_id):'Banner default';
+  return `<div class="mrow${m.is_ours?' ours':''}${m.is_leader?' lead':''}"><div class="mav">${m.is_leader?'👑':(m.is_ours?'🤖':'🧑')}</div><div class="mi"><b>${esc(m.name)}${m.is_leader?'<span class="mtag l">LEADER</span>':''}${m.is_ours?'<span class="mtag o">HAMARA BOT'+(m.our_status?' • '+esc(String(m.our_status).replace('_',' ')):'')+'</span>':''}</b><small>Lv ${esc(m.level)} • Glory ${fmtN(m.score)} • UID ${esc(m.uid)}</small><div class="mchips"><span>🎭 ${esc(av)}</span><span>🏳 ${esc(bn)}</span></div></div></div>`}).join(''):'<div class="empty">Game ne member list nahi bheji (is guild ka member data khaali aaya).</div>'}
+let oldMsgText='',oldMsgAt=0;
+function renderOld(d){const o=d.old_accounts||{},n=o.inactive_count||0,list=o.inactive||[],box=$('oldAcc');
+ let h='';
+ if(o.total){
+  h=`<div class="old-box"><div class="old-head"><b>📦 Purane accounts</b><span class="muted">${o.total} saved • ${n} abhi band${o.banned?` • ${o.banned} banned (retry nahi hoga)`:''}</span></div>`
+   +(n?`<div class="muted" style="font-size:11px;margin-top:6px">Ye accounts automatic save rehte hain (fresh pool se bhi nahi khote). Activate karte hi squad mein judkar apna kaam shuru kar denge.</div><div class="old-list">${list.slice(0,24).map(u=>`<button class="f" data-old="${esc(u)}" type="button">▶ ${esc(u)}</button>`).join('')}${n>24?`<span class="muted">+${n-24} aur</span>`:''}</div><button class="old-all" id="oldAll" type="button">▶ Sab ${n} purane accounts activate karo</button>`:'<div class="empty">Saare purane accounts chal rahe hain ✓</div>')
+   +`<div class="hint">${(oldMsgText&&Date.now()-oldMsgAt<20000)?esc(oldMsgText):''}</div></div>`}
+ if(box._h!==h){box._h=h;box.innerHTML=h}}
+$('oldAcc').onclick=async e=>{const t=(e.target&&e.target.closest)?e.target.closest('button'):null;if(!t)return;
+ let body=null;
+ if(t.id==='oldAll'){if(typeof confirm==='function'&&!confirm('Saare purane accounts activate karne hain?'))return;body={all:true}}
+ else if(t.dataset&&t.dataset.old){body={uids:[t.dataset.old]}}
+ else return;
+ t.disabled=true;
+ try{const r=await fetch('/api/accounts/old/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();oldMsgText=j.message||j.error||'Ho gaya'}catch(err){oldMsgText='Server connection failed'}
+ oldMsgAt=Date.now();$('oldAcc')._h=null;pollStats()};
+function renderBanned(d){const bn=d.banned||[];
+ $('banned').innerHTML=bn.length?`<div class="bn-head">🚫 Banned accounts (${bn.length}) — in par ab login retry nahi hota</div>`+bn.map(b=>`<div class="bn-row"><b>${esc(b.key)}</b><span class="chip st-BANNED">${esc(b.reason||'BANNED')}</span><span class="muted">${b.account_id?('ID '+esc(b.account_id)+' • '):''}${b.found_at?esc(new Date(b.found_at*1000).toLocaleString()):''}</span></div>`).join(''):''}
+function pct(a){if(a.stage==='generating')return Math.min(45,Math.round((a.created/Math.max(1,a.target))*45));if(a.stage==='guild')return 55;if(a.stage==='joining')return Math.min(90,55+Math.round((a.joined+a.failed)/Math.max(1,a.target)*35));if(a.stage==='starting')return 96;if(a.stage==='done')return 100;return 0}
+async function poll(){try{const r=await fetch('/api/automation');const d=await r.json();const a=d.automation||{};let p=pct(a);renderSteps(a);$('fill').style.width=p+'%';$('percent').textContent=p+'%';$('stage').textContent=a.message||a.stage||'Ready';$('created').textContent=a.created||0;$('joined').textContent=a.joined||0;$('failed').textContent=a.failed||0;$('glory').textContent=d.glory_started?'ON':'OFF';$('statusPill').textContent=a.running?'● RUNNING':(a.stage==='error'?'● ERROR':(d.glory_started?'● GLORY ONLINE':'● READY'));$('statusPill').style.color=a.running?'var(--cyan)':(a.stage==='error'?'var(--red)':(d.glory_started?'var(--green)':'var(--muted)'));renderGuild(d.guild);renderLive(d.guild_live);if(a.running){$('start').disabled=true}else{$('start').disabled=false}}catch(e){}}
+
+/* ---------- live stats / accounts / log ---------- */
+let filt='all',lastLogs=[];
+function renderOverview(d){const accs=d.accounts||[],rl=d.relogins||{};
+ const online=accs.filter(a=>a.status==='ONLINE'||a.status==='IN_MATCH').length;
+ $('tUptime').textContent=fmtDur(d.uptime);$('hdUptime').textContent=fmtDur(d.uptime);$('hdOnline').textContent=online+'/'+(d.total_accounts??accs.length);$('tAccs').textContent=d.total_accounts??accs.length;$('tAccsSub').textContent=`online ${online}`+((d.banned||[]).length?` • banned ${(d.banned||[]).length}`:'');
+ $('tActive').textContent=d.total_active_matches??0;$('tMatches').textContent=fmtN(d.total_matches);$('tStarted').textContent='started '+fmtN(d.total_matches_started);
+ $('tExp').textContent=fmtN(d.total_gained_exp);$('tExpH').textContent=fmtN(d.exp_per_hour);
+ let ok=0,bad=0,last=null,who='';for(const [u,e] of Object.entries(rl)){ok+=e.ok||0;bad+=e.fail||0;if(e.last_time&&(!last||e.last_time>=last)){last=e.last_time;const a=accs.find(x=>String(x.uid)===String(u));who=(a&&a.nickname)||u}}
+ $('tRl').innerHTML=`<span class="ok">${ok}</span> / <span class="bad">${bad}</span>`;
+ $('tRlLast').textContent=last||'—';$('tRlWho').textContent=last?who:'abhi tak koi nahi'}
+function accRow(a,rl){const st=String(a.status||'ONLINE'),cls='st-'+st.replace(/[^A-Za-z]/g,'_').toUpperCase(),e=rl[String(a.uid)];
+  let r='<span class="muted">Re-login: abhi tak nahi hua</span>';
+  if(e){const c=e.last_status==='OK'?'ok':(e.last_status==='FAILED'?'bad':'warn'),t=e.last_status==='OK'?'✓ wapas online':(e.last_status==='FAILED'?'✗ fail':'⟳ chal raha hai');r=`<b>🔄 ${e.count}x</b> <span class="muted">(✓${e.ok} ✗${e.fail})</span> • <span class="${c}">${t}</span> <span class="muted">${esc(e.last_time||'')}</span>`}
+  return `<div class="acc"><div class="nm"><b>${esc(a.nickname||a.uid)}</b><small>UID ${esc(a.uid)} • ${esc(a.region||'')}</small></div><div class="chips"><span class="chip ${cls}">${esc(st.replace('_',' '))}</span>${a.spectating?'<span class="chip sq-wait" title="Out ho gaya, squad ke baaki abhi match mein hain - spectate kar raha hai">👁 SPECTATE</span>':''}</div><div class="meta"><span><i>Lv</i> ${esc(a.level??'-')}</span><span><i>EXP</i> +${fmtN(a.gained_exp||0)}</span><span><i>Matches</i> ${fmtN(a.matches_played||0)}${a.active_matches?` (${a.active_matches} live)`:''}</span><span><i>Uptime</i> ${fmtDur(a.uptime_seconds)}</span></div><div class="rl">${r}</div></div>`}
+function renderAccounts(d){const accs=d.accounts||[],rl=d.relogins||{},sq=d.squads||{};
+ if(!accs.length&&!Object.keys(sq).length){$('accs').innerHTML='<div class="empty">Abhi koi account online nahi hai.</div>';return}
+ const groups={};accs.forEach(a=>{const k=a.squad?String(a.squad):'0';(groups[k]=groups[k]||[]).push(a)});
+ Object.keys(sq).forEach(k=>{groups[k]=groups[k]||[]});
+ const keys=Object.keys(groups).sort((x,y)=>(+x||999)-(+y||999));
+ $('accs').innerHTML=keys.map(k=>{
+  const arr=groups[k],info=sq[k]||{},size=info.size||4,reg=(info.registered!=null)?info.registered:arr.length;
+  const playing=!!info.playing||arr.some(a=>a.status==='IN_MATCH'),full=reg>=size;
+  let state,cls,box;
+  if(k==='0'){state='⏳ Squad assign ho raha hai';cls='sq-wait';box='waiting'}
+  else if(playing){state='🎮 Match khel rahi hai';cls='st-IN_MATCH';box='playing'}
+  else if(!full){state=`⏳ Poori nahi — ${reg}/${size} (${size-reg} jagah khali)`;cls='sq-wait';box='waiting'}
+  else{state='🤝 Team ban rahi hai';cls='sq-ready';box=''}
+  const pctv=Math.min(100,Math.round(reg/size*100));
+  return `<div class="sqsec ${box}"><div class="sqhead"><b>${k==='0'?'Squad —':'Squad '+esc(k)}</b><span class="chip ${cls}">${state}</span>${k==='0'?'':`<div class="sqbar"><i style="width:${pctv}%"></i></div><span class="muted" style="font-size:11px">${reg}/${size} accounts • ${arr.length} online</span>`}${info.stage?`<div class="muted" style="font-size:11px;width:100%">🧭 ${esc(info.stage)}${info.stage_age>=15?` (${info.stage_age}s se yahi)`:''}</div>`:''}</div>${arr.length?arr.slice(0,40).map(a=>accRow(a,rl)).join(''):'<div class="empty">Is squad ke accounts login ho rahe hain…</div>'}</div>`}).join('')}
+
+function logKind(x){const m=String(x.message||'');return /re-?login/i.test(m)?'relogin':(x.level||'info')}
+function renderLogs(){const hide=$('hideDbg').checked;
+ let arr=lastLogs.filter(x=>x&&typeof x==='object');
+ if(hide)arr=arr.filter(x=>!/^\[RAW-IN/.test(String(x.message||'')));
+ if(filt!=='all')arr=arr.filter(x=>filt==='relogin'?/re-?login/i.test(String(x.message||'')):(x.level===filt));
+ const box=$('logs');const keep=box.scrollTop;
+ box.innerHTML=arr.slice(-150).reverse().map(x=>{const lv=['success','error','warning'].includes(x.level)?x.level:'info',re=/re-?login/i.test(String(x.message||''));
+  return `<div class="log lv-${lv}"><span class="t">${esc(x.time||'')}</span><span class="tag ${re?'tg-relogin':'tg-'+lv}">${re?'RE-LOGIN':lv.toUpperCase()}</span><span class="m">${esc(x.message||'')}</span></div>`}).join('')||'<div class="muted" style="padding:10px">Is filter mein abhi koi log nahi.</div>';
+ box.scrollTop=keep}
+async function pollStats(){try{const r=await fetch('/api/stats?logs=200');const d=await r.json();renderOverview(d);renderAccounts(d);renderBanned(d);renderOld(d);lastLogs=d.logs||[];renderLogs()}catch(e){}}
+document.querySelectorAll('.f').forEach(b=>b.onclick=()=>{filt=b.dataset.f;document.querySelectorAll('.f').forEach(x=>x.classList.toggle('on',x===b));renderLogs()});
+$('hideDbg').onchange=renderLogs;
+
+$('start').onclick=async()=>{const guild_id=$('guildId').value.trim(),region=$('region').value,total=Number($('total').value),threads=Number($('threads').value),fresh=$('fresh').checked;if(!guild_id)return alert('Guild ID enter karo');$('start').disabled=true;try{const r=await fetch('/api/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guild_id,region,total_accounts:total,threads,fresh_pool:fresh})});const d=await r.json();if(!r.ok)alert(d.error||'Start failed')}catch(e){alert('Server connection failed')}};
+setInterval(poll,1000);setInterval(pollStats,2000);poll();pollStats();
+
+/* ---------- pipeline steps (accounts banao -> guild -> join -> glory) ---------- */
+function renderSteps(a){const li=document.querySelectorAll('#steps li');if(!li.length)return;
+ const order=['generating','guild','joining','starting'],idx=order.indexOf(a.stage),done=a.stage==='done';
+ li.forEach((el,i)=>{el.className=done||(idx>-1&&i<idx)?'done':(i===idx?(a.running?'now':''):'')});
+ if(a.stage==='error'){li.forEach(el=>{if(el.className==='now')el.className='err'})}}
+
+/* ---------- nav: highlight the section being read ---------- */
+(function(){const links=[].slice.call(document.querySelectorAll('.nav a'));
+ if(!links.length||typeof IntersectionObserver==='undefined')return;
+ const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id))}})},{rootMargin:'-35% 0px -60% 0px'});
+ links.forEach(l=>{const el=document.getElementById(l.getAttribute('href').slice(1));if(el)io.observe(el)})})();
+</script></body></html>
